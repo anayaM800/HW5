@@ -1,0 +1,124 @@
+---
+title: "HW5 - Anaya Malik"
+output: html_document
+date: "ahm2466"
+---
+[GitHub Link Here!]()
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(mosaic)
+library(ggplot2)
+```
+
+### Problem 1
+```{r, echo=FALSE}
+simulation = do(100000)*nflip(n=2021, prob=0.024)
+ggplot(simulation) + geom_histogram(aes(x=nflip), binwidth=1)
+(sum(simulation >= 70))/100000
+```
+
+The null hypothesis being tested is that 2.4% of the trades are being flagged so over the long run that means if 70 were flagged that would be normal but lets see if it actually is so. Firstly, the test stat is the percentage flagged over 2021 trades being done. So the higher the percentage the more flags that would be happening therefore strong evidence for going against null hypothesis. Assuming the null hypothesis is true, the probability of the distrubtion of the test statistic ranged from 20 to 80 as seen on the plot, showing that the number 70 was normal and common if the null was true. The p-value itself is 0.00157 one of the times. Based on this, is it unlikley the fact that null hypoothesis is true. Because the p-value is much lower than the comparative 0.05, this means that its unlikley the null hypothesis is true. Therefore there is strong evidence against the null hypothesis meaning that the 70 flagged cases should be looked into because it could mean illegal activity was happening.
+
+### Problem 2
+```{r, echo=FALSE}
+health = do(100000)*nflip(n=50, prob=0.03)
+#head(simulation)
+ggplot(health) + geom_histogram(aes(x=nflip), binwidth=1)
+(sum(health >= 8)) / 100000 # p-value
+```
+The null hypothesis I am testing is that the health violations for Gourmet Bites is consistent with the 3% health violations number in the city meaning there is no difference. The test statistic is the 8 out of 50 number for inspections for Gourmets Bites to compare it to the 3% number. The probability distribution is plotted above and shows that 3.0 is less common. It would be more common if the null hypothesis was true. The p-value is 0.00012 one of the times I run it which is much lower than 0.05. Because of how low this is, this means that the null hypohtesis is very unplausible and unlikley. There seems to be a higher number of violations for Gourmets Bites than the city wide average. Since these results are not consistent, it should be looked into to make sure that Gourmet Bites is following health code. 
+
+### Problem 3
+```{r, echo=FALSE}
+lines <- readLines(con = "brown_sentences.txt")
+letter_frequencies = read.csv("letter_frequencies.csv")
+
+calculate_chi_squared = function(sentence, freq_table) {
+  
+  # Ensure letter frequencies are normalized and sum to 1
+  freq_table$Probability = freq_table$Probability / sum(freq_table$Probability)
+  
+  # Remove non-letters and convert to uppercase
+  clean_sentence = gsub("[^A-Za-z]", "", sentence)
+  clean_sentence = toupper(clean_sentence)
+  
+  # Count the occurrences of each letter in the sentence
+  observed_counts = table(factor(strsplit(clean_sentence, "")[[1]], levels = freq_table$Letter))
+  
+  # Calculate expected counts
+  total_letters = sum(observed_counts)
+  expected_counts = total_letters * freq_table$Probability
+  
+  # Chi-squared statistic
+  chi_squared_stat = sum((observed_counts - expected_counts)^2 / expected_counts)
+  
+  return(chi_squared_stat)
+}
+
+chi_squared_stats <- numeric(length(lines))
+
+for (i in 1:length(lines)){
+  chi_squared_stats[i] <- calculate_chi_squared(lines[i], letter_frequencies)
+}
+# print(chi_squared_stats) - check to print
+
+
+
+
+```
+
+```{r, echo=FALSE}
+
+#simulation = do(100000)*nflip(n=2021, prob=0.024)
+#head(simulation)
+#ggplot(simulation) + geom_histogram(aes(x=nflip), binwidth=1)
+
+sentences <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+)
+
+p_values <- c(
+  
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[1],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[2],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[3],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[4],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[5],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[6],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[7],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[8],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[9],letter_frequencies)))/length(chi_squared_stats),
+
+sum(1*(chi_squared_stats >= calculate_chi_squared(sentences[10],letter_frequencies)))/length(chi_squared_stats) 
+
+)
+
+rounded_p_values <- round(p_values, 3)
+
+sentences_index <- 1:10
+p_values_table <- data.frame(P_Value = rounded_p_values)
+
+print(p_values_table)
+
+```
+The sentences that seems to be produced by an LLM seems to be Sentence 6 based on the values. This p value is much, much lower than the rest of the sentence values indicating that this sentence should be looked into since it is not consistent with the English standard for letter frequency.  
+
